@@ -131,7 +131,7 @@ cat: User [ganjianling] is not authorized to perform [DECRYPT_EEK] on key with A
 cat: User:hdfs not allowed to do 'DECRYPT_EEK' on 'wumei_key2'
 ```
 
-## 7、到暴力磁盘读取文件
+## 7、到datanode磁盘读取文件
 获取/tmp/wumei_kms4test/helloWorld.txt的block分区
 
 ```
@@ -171,7 +171,7 @@ find: ‘/proc/26759’: No such file or directory
 HB(;9&lWKNX#骇6׸(\DrB}Ͽxח=AzjޑT!NHt=ZJVIڕa4E?_z�` 'μXX<_Ӆ/0P9ٹ&/@VH焺d4hZA
 ```
 
-# 7、拷贝文件到Encryption Zone
+# 8、拷贝文件到Encryption Zone
 
 可以将存在的数据拷贝到encryption zone，在HDFS内部可以可以使用DistCp命令
 测试过程
@@ -301,7 +301,7 @@ drwxr-xr-x   - wumei bigdata_analysis_group          0 2017-04-12 15:07 /tmp/wum
 ```
 
 
-# 8 spark 读取encryption zone数据权限验证
+# 9、 spark 读取encryption zone数据权限验证
 
 ```
 scala> sc.textFile("/tmp/wumei_kms4test/anaconda-ks.cfg").collect()
@@ -503,7 +503,7 @@ scala>
 ```
 
 
-# 9 hiveserver2 读取encryption zone数据权限验证
+# 10 hiveserver2 读取encryption zone数据权限验证
 
 操作过程
 
