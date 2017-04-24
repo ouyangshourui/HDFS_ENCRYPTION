@@ -7,7 +7,7 @@
 
 - [x] lidachao1用户是key admin user
 - [x] hdfs 用 户是 hdfs super user
-- [x] wumei10 、 ganjianling 是HDFS普通用户
+- [x] wumei 、 ganjianling 是HDFS普通用户
 
 ##  1、创建keytab
 安装下面的办法创建keytab
@@ -15,68 +15,68 @@
 addprinc -randkey ourui
 xst -norandkey -k ourui.keytab ourui
 ```
-##  2、到key admin 用户创建给wumei10创建 key
+##  2、到key admin 用户创建给wumei创建 key
 
 
 ```
 kinit -kt lidachao1.keytab   lidachao1
-hadoop key create wumei10_key2
+hadoop key create wumei_key2
 ```
 结果如下：
 
 ```
 [root@**rcw1 ~]# kinit -kt lidachao1.keytab   lidachao1
-[root@**rcw1 ~]# hadoop key create wumei10_key2
-wumei10_key2 has been successfully created with options Options{cipher='AES/CTR/NoPadding', bitLength=128, description='null', attributes=null}.
+[root@**rcw1 ~]# hadoop key create wumei_key2
+wumei_key2 has been successfully created with options Options{cipher='AES/CTR/NoPadding', bitLength=128, description='null', attributes=null}.
 org.apache.hadoop.crypto.key.kms.LoadBalancingKMSClientProvider@6221a451 has been updated.
 ```
 
-##  3、到hdfs用户给wumei10 创建目录并赋权、创建zone
+##  3、到hdfs用户给wumei 创建目录并赋权、创建zone
 
 
 ```
 kinit  -kt hdfs.keytab  hdfs
-hadoop  fs -mkdir /tmp/wumei10_kms4test
-hadoop  fs -chown wumei10:bigdata_analysis_group /tmp/wumei10_kms4test
-hdfs crypto -createZone -keyName wumei10_key2 -path /tmp/wumei10_kms4test
+hadoop  fs -mkdir /tmp/wumei_kms4test
+hadoop  fs -chown wumei:bigdata_analysis_group /tmp/wumei_kms4test
+hdfs crypto -createZone -keyName wumei_key2 -path /tmp/wumei_kms4test
 ```
 结果如下
 
 ```
 [root@**rcw1 ~]# kinit  -kt hdfs.keytab  hdfs
-[root@**rcw1 ~]# hadoop  fs -mkdir /tmp/wumei10_kms4test
-[root@**rcw1 ~]# hadoop  fs -chown wumei10:bigdata_analysis_group /tmp/wumei10_kms4test
-[root@**rcw1 ~]# hdfs crypto -createZone -keyName wumei10_key2 -path /tmp/wumei10_kms4test
-Added encryption zone /tmp/wumei10_kms4test
+[root@**rcw1 ~]# hadoop  fs -mkdir /tmp/wumei_kms4test
+[root@**rcw1 ~]# hadoop  fs -chown wumei:bigdata_analysis_group /tmp/wumei_kms4test
+[root@**rcw1 ~]# hdfs crypto -createZone -keyName wumei_key2 -path /tmp/wumei_kms4test
+Added encryption zone /tmp/wumei_kms4test
 ```
 
 
-##  4、到wumei10用户上传文件、并测试可读性
+##  4、到wumei用户上传文件、并测试可读性
 
 ```
-kinit -kt wumei10.keytab wumei10
+kinit -kt wumei.keytab wumei
 echo "Hello World" > /tmp/helloWorld.txt
-hadoop fs -put /tmp/helloWorld.txt /tmp/wumei10_kms4test
-hadoop fs -cat /tmp/wumei10_kms4test/helloWorld.txt
+hadoop fs -put /tmp/helloWorld.txt /tmp/wumei_kms4test
+hadoop fs -cat /tmp/wumei_kms4test/helloWorld.txt
 rm /tmp/helloWorld.txt
 ```
 结果如下：
 
 ```
-[root@**rcw1 ~]# hadoop fs -put /tmp/helloWorld.txt /tmp/wumei10_kms4test
-17/04/11 18:18:45 WARN kms.LoadBalancingKMSClientProvider: KMS provider at [http://**rcn1.lfbigdata**.cn:16000/kms/v1/] threw an IOException [User [wumei10] is not authorized to perform [DECRYPT_EEK] on key with ACL name [wumei10_key2]!!]!!
-17/04/11 18:18:45 WARN kms.LoadBalancingKMSClientProvider: KMS provider at [http://**rcn2.lfbigdata**.cn:16000/kms/v1/] threw an IOException [User [wumei10] is not authorized to perform [DECRYPT_EEK] on key with ACL name [wumei10_key2]!!]!!
+[root@**rcw1 ~]# hadoop fs -put /tmp/helloWorld.txt /tmp/wumei_kms4test
+17/04/11 18:18:45 WARN kms.LoadBalancingKMSClientProvider: KMS provider at [http://**rcn1.lfbigdata**.cn:16000/kms/v1/] threw an IOException [User [wumei] is not authorized to perform [DECRYPT_EEK] on key with ACL name [wumei_key2]!!]!!
+17/04/11 18:18:45 WARN kms.LoadBalancingKMSClientProvider: KMS provider at [http://**rcn2.lfbigdata**.cn:16000/kms/v1/] threw an IOException [User [wumei] is not authorized to perform [DECRYPT_EEK] on key with ACL name [wumei_key2]!!]!!
 17/04/11 18:18:45 WARN kms.LoadBalancingKMSClientProvider: Aborting since the Request has failed with all KMS providers in the group. !!
-put: User [wumei10] is not authorized to perform [DECRYPT_EEK] on key with ACL name [wumei10_key2]!!
+put: User [wumei] is not authorized to perform [DECRYPT_EEK] on key with ACL name [wumei_key2]!!
 17/04/11 18:18:45 ERROR hdfs.DFSClient: Failed to close inode 1404823
 ```
 
-从结果看2 wumei10对wumei10_key2没有 DECRYPT_EEK权限，这时候就设计到可以的白名单设置了。下面我们到kms-acl.xml文件里面配置该key的权限
+从结果看2 wumei对wumei_key2没有 DECRYPT_EEK权限，这时候就设计到可以的白名单设置了。下面我们到kms-acl.xml文件里面配置该key的权限
 
 ```
 <property>
-    <name>key.acl.wumei10_key2.DECRYPT_EEK</name>
-    <value>wumei10</value>
+    <name>key.acl.wumei_key2.DECRYPT_EEK</name>
+    <value>wumei</value>
     <description>
       ACL for decryptEncryptedKey operations.
     </description>
@@ -86,10 +86,10 @@ put: User [wumei10] is not authorized to perform [DECRYPT_EEK] on key with ACL n
 我们继续写入数据
 
 ```
-[root@**rcw1 ~]# hadoop fs -put /tmp/helloWorld.txt /tmp/wumei10_kms4test
+[root@**rcw1 ~]# hadoop fs -put /tmp/helloWorld.txt /tmp/wumei_kms4test
 [root@**rcw1 ~]# klist
 Ticket cache: FILE:/tmp/krb5cc_0
-Default principal: wumei10@LFDC.**-GROUP.NET
+Default principal: wumei@LFDC.**-GROUP.NET
 
 Valid starting       Expires              Service principal
 04/11/2017 18:18:18  04/12/2017 18:18:18  krbtgt/LFDC.**-GROUP.NET@LFDC.**-GROUP.NET
@@ -99,7 +99,7 @@ Valid starting       Expires              Service principal
 数据写入成功，测试读数据
 
 ```
-[root@**rcw1 ~]# hadoop fs -cat /tmp/wumei10_kms4test/helloWorld.txt                    
+[root@**rcw1 ~]# hadoop fs -cat /tmp/wumei_kms4test/helloWorld.txt                    
 Hello World
 ```
 读数据成功。
@@ -111,11 +111,11 @@ Hello World
 
 ```
 [root@**rcw1 ~]# kinit -kt ganjianling.keytab ganjianling
-[root@**rcw1 ~]# hadoop fs -cat /tmp/wumei10_kms4test/helloWorld.txt 
-17/04/11 18:40:10 WARN kms.LoadBalancingKMSClientProvider: KMS provider at [http://**rcn1.lfbigdata**.cn:16000/kms/v1/] threw an IOException [User [ganjianling] is not authorized to perform [DECRYPT_EEK] on key with ACL name [wumei10_key2]!!]!!
-17/04/11 18:40:10 WARN kms.LoadBalancingKMSClientProvider: KMS provider at [http://**rcn2.lfbigdata**.cn:16000/kms/v1/] threw an IOException [User [ganjianling] is not authorized to perform [DECRYPT_EEK] on key with ACL name [wumei10_key2]!!]!!
+[root@**rcw1 ~]# hadoop fs -cat /tmp/wumei_kms4test/helloWorld.txt 
+17/04/11 18:40:10 WARN kms.LoadBalancingKMSClientProvider: KMS provider at [http://**rcn1.lfbigdata**.cn:16000/kms/v1/] threw an IOException [User [ganjianling] is not authorized to perform [DECRYPT_EEK] on key with ACL name [wumei_key2]!!]!!
+17/04/11 18:40:10 WARN kms.LoadBalancingKMSClientProvider: KMS provider at [http://**rcn2.lfbigdata**.cn:16000/kms/v1/] threw an IOException [User [ganjianling] is not authorized to perform [DECRYPT_EEK] on key with ACL name [wumei_key2]!!]!!
 17/04/11 18:40:10 WARN kms.LoadBalancingKMSClientProvider: Aborting since the Request has failed with all KMS providers in the group. !!
-cat: User [ganjianling] is not authorized to perform [DECRYPT_EEK] on key with ACL name [wumei10_key2]!!
+cat: User [ganjianling] is not authorized to perform [DECRYPT_EEK] on key with ACL name [wumei_key2]!!
 ```
 
 
@@ -124,21 +124,21 @@ cat: User [ganjianling] is not authorized to perform [DECRYPT_EEK] on key with A
 
 ```
 [root@**rcw1 ~]# kinit -kt hdfs.keytab hdfs
-[root@**rcw1 ~]# hadoop fs -cat /tmp/wumei10_kms4test/helloWorld.txt 
-17/04/11 18:40:31 WARN kms.LoadBalancingKMSClientProvider: KMS provider at [http://**rcn1.lfbigdata**.cn:16000/kms/v1/] threw an IOException [User:hdfs not allowed to do 'DECRYPT_EEK' on 'wumei10_key2']!!
-17/04/11 18:40:31 WARN kms.LoadBalancingKMSClientProvider: KMS provider at [http://**rcn2.lfbigdata**.cn:16000/kms/v1/] threw an IOException [User:hdfs not allowed to do 'DECRYPT_EEK' on 'wumei10_key2']!!
+[root@**rcw1 ~]# hadoop fs -cat /tmp/wumei_kms4test/helloWorld.txt 
+17/04/11 18:40:31 WARN kms.LoadBalancingKMSClientProvider: KMS provider at [http://**rcn1.lfbigdata**.cn:16000/kms/v1/] threw an IOException [User:hdfs not allowed to do 'DECRYPT_EEK' on 'wumei_key2']!!
+17/04/11 18:40:31 WARN kms.LoadBalancingKMSClientProvider: KMS provider at [http://**rcn2.lfbigdata**.cn:16000/kms/v1/] threw an IOException [User:hdfs not allowed to do 'DECRYPT_EEK' on 'wumei_key2']!!
 17/04/11 18:40:31 WARN kms.LoadBalancingKMSClientProvider: Aborting since the Request has failed with all KMS providers in the group. !!
-cat: User:hdfs not allowed to do 'DECRYPT_EEK' on 'wumei10_key2'
+cat: User:hdfs not allowed to do 'DECRYPT_EEK' on 'wumei_key2'
 ```
 
 ## 7、到暴力磁盘读取文件
-获取/tmp/wumei10_kms4test/helloWorld.txt的block分区
+获取/tmp/wumei_kms4test/helloWorld.txt的block分区
 
 ```
-[root@**rcw1 ~]# hdfs fsck /tmp/wumei10_kms4test/helloWorld.txt -files -blocks -locations
+[root@**rcw1 ~]# hdfs fsck /tmp/wumei_kms4test/helloWorld.txt -files -blocks -locations
 Connecting to namenode via http://**rcm2.lfbigdata**.cn:50070
-FSCK started by wumei10 (auth:KERBEROS_SSL) from /**.192.22 for path /tmp/wumei10_kms4test/helloWorld.txt at Tue Apr 11 20:08:13 CST 2017
-/tmp/wumei10_kms4test/anaconda-ks.cfg 1794 bytes, 1 block(s): OK
+FSCK started by wumei (auth:KERBEROS_SSL) from /**.192.22 for path /tmp/wumei_kms4test/helloWorld.txt at Tue Apr 11 20:08:13 CST 2017
+/tmp/wumei_kms4test/anaconda-ks.cfg 1794 bytes, 1 block(s): OK
 0. BP-1364822025-**.192.19-1483423637421:blk_1074038523_297830 len=1794 Live_repl=3 [DatanodeInfoWithStorage[**.192.44:1004,DS-e8d0aba4-e9d7-4cd2-87bb-82b361a7a91a,DISK], DatanodeInfoWithStorage[**.192.35:1004,DS-2929b784-382e-4c9b-91cc-609d3e7e0bfd,DISK], DatanodeInfoWithStorage[**.192.43:1004,DS-bd15f7a5-ac53-484d-ae55-5273ef1aa6c5,DISK]]
 Status: HEALTHY
 Total size: 1794 B
@@ -158,7 +158,7 @@ Number of data-nodes: 25
 Number of racks: 1
 FSCK ended at Tue Apr 11 20:08:13 CST 2017 in 1 milliseconds
 
-The filesystem under path '/tmp/wumei10_kms4test/helloWorld.txt' is HEALTHY
+The filesystem under path '/tmp/wumei_kms4test/helloWorld.txt' is HEALTHY
 [root@**rcw1 ~]# ssh **.192.44
 Last login: Wed Apr 5 10:30:44 2017 from **rcm1.lfbigdata**.cn
 [root@**rd21 ~]# find / -name blk_1074038523*
@@ -176,19 +176,19 @@ HB(;9&lWKNX#骇6׸(\DrB}Ͽxח=AzjޑT!NHt=ZJVIڕa4E?_z�` 'μXX<_Ӆ/0P9ٹ&/@VH�
 可以将存在的数据拷贝到encryption zone，在HDFS内部可以可以使用DistCp命令
 测试过程
 
-- hdfs上面普通的数据目录/data/big_data/staff/wumei10
-- 加密去区/tmp/wumei10_kms4test
+- hdfs上面普通的数据目录/data/big_data/staff/wumei
+- 加密去区/tmp/wumei_kms4test
 
 
 ```
-hadoop distcp /data/big_data/staff/wumei10 /tmp/wumei10_kms4test -skipcrccheck -update
+hadoop distcp /data/big_data/staff/wumei /tmp/wumei_kms4test -skipcrccheck -update
 
 
 
-[root@**rcw1 ~]# hadoop distcp  -skipcrccheck -update /data/big_data/staff/wumei10 /tmp/wumei10_kms4test 
-17/04/12 15:07:21 INFO tools.DistCp: Input Options: DistCpOptions{atomicCommit=false, syncFolder=true, deleteMissing=false, ignoreFailures=false, maxMaps=20, sslConfigurationFile='null', copyStrategy='uniformsize', sourceFileListing=null, sourcePaths=[/data/big_data/staff/wumei10], targetPath=/tmp/wumei10_kms4test, targetPathExists=true, preserveRawXattrs=false, filtersFile='null'}
-17/04/12 15:07:21 INFO hdfs.DFSClient: Created HDFS_DELEGATION_TOKEN token 3212 for wumei10 on ha-hdfs:nameservice1
-17/04/12 15:07:22 INFO security.TokenCache: Got dt for hdfs://nameservice1; Kind: HDFS_DELEGATION_TOKEN, Service: ha-hdfs:nameservice1, Ident: (HDFS_DELEGATION_TOKEN token 3212 for wumei10)
+[root@**rcw1 ~]# hadoop distcp  -skipcrccheck -update /data/big_data/staff/wumei /tmp/wumei_kms4test 
+17/04/12 15:07:21 INFO tools.DistCp: Input Options: DistCpOptions{atomicCommit=false, syncFolder=true, deleteMissing=false, ignoreFailures=false, maxMaps=20, sslConfigurationFile='null', copyStrategy='uniformsize', sourceFileListing=null, sourcePaths=[/data/big_data/staff/wumei], targetPath=/tmp/wumei_kms4test, targetPathExists=true, preserveRawXattrs=false, filtersFile='null'}
+17/04/12 15:07:21 INFO hdfs.DFSClient: Created HDFS_DELEGATION_TOKEN token 3212 for wumei on ha-hdfs:nameservice1
+17/04/12 15:07:22 INFO security.TokenCache: Got dt for hdfs://nameservice1; Kind: HDFS_DELEGATION_TOKEN, Service: ha-hdfs:nameservice1, Ident: (HDFS_DELEGATION_TOKEN token 3212 for wumei)
 17/04/12 15:07:22 WARN token.Token: Cannot find class for token kind kms-dt
 17/04/12 15:07:22 INFO security.TokenCache: Got dt for hdfs://nameservice1; Kind: kms-dt, Service: **.192.21:16000, Ident: 00 07 77 75 6d 65 69 31 30 04 79 61 72 6e 00 8a 01 5b 60 fc f3 bc 8a 01 5b 85 09 77 bc 1f 10
 17/04/12 15:07:22 INFO tools.SimpleCopyListing: Paths (files+dirs) cnt = 509; dirCnt = 73
@@ -204,7 +204,7 @@ hadoop distcp /data/big_data/staff/wumei10 /tmp/wumei10_kms4test -skipcrccheck -
 17/04/12 15:07:23 WARN token.Token: Cannot find class for token kind kms-dt
 17/04/12 15:07:23 WARN token.Token: Cannot find class for token kind kms-dt
 Kind: kms-dt, Service: **.192.20:16000, Ident: 00 07 77 75 6d 65 69 31 30 04 79 61 72 6e 00 8a 01 5b 60 fc f6 c7 8a 01 5b 85 09 7a c7 20 0e
-17/04/12 15:07:23 INFO mapreduce.JobSubmitter: Kind: HDFS_DELEGATION_TOKEN, Service: ha-hdfs:nameservice1, Ident: (HDFS_DELEGATION_TOKEN token 3212 for wumei10)
+17/04/12 15:07:23 INFO mapreduce.JobSubmitter: Kind: HDFS_DELEGATION_TOKEN, Service: ha-hdfs:nameservice1, Ident: (HDFS_DELEGATION_TOKEN token 3212 for wumei)
 17/04/12 15:07:23 WARN token.Token: Cannot find class for token kind kms-dt
 17/04/12 15:07:23 WARN token.Token: Cannot find class for token kind kms-dt
 Kind: kms-dt, Service: **.192.21:16000, Ident: 00 07 77 75 6d 65 69 31 30 04 79 61 72 6e 00 8a 01 5b 60 fc f3 bc 8a 01 5b 85 09 77 bc 1f 10
@@ -269,42 +269,42 @@ Kind: kms-dt, Service: **.192.21:16000, Ident: 00 07 77 75 6d 65 69 31 30 04 79 
 检查数据结果
 
 ```
-[root@**rcw1 ~]# hadoop fs -ls  /data/big_data/staff/wumei10 /tmp/wumei10_kms4test                                     
+[root@**rcw1 ~]# hadoop fs -ls  /data/big_data/staff/wumei /tmp/wumei_kms4test                                     
 Found 12 items
--rw-r--r--   3 wumei10 bigdata_analysis_group          0 2017-04-12 14:59 /data/big_data/staff/wumei10/.autorelabel
--rw-r--r--   3 wumei10 bigdata_analysis_group      81239 2017-04-12 14:59 /data/big_data/staff/wumei10/.readahead
--rw-r--r--   3 wumei10 bigdata_analysis_group       1794 2017-04-12 14:59 /data/big_data/staff/wumei10/anaconda-ks.cfg
-drwxr-xr-x   - wumei10 bigdata_analysis_group          0 2017-04-12 14:59 /data/big_data/staff/wumei10/app
-drwxr-xr-x   - wumei10 bigdata_analysis_group          0 2017-04-12 15:00 /data/big_data/staff/wumei10/bin
--rw-r--r--   3 wumei10 bigdata_analysis_group        586 2017-04-12 14:59 /data/big_data/staff/wumei10/ganjianling.keytab
--rw-r--r--   3 wumei10 bigdata_analysis_group       1066 2017-04-12 14:59 /data/big_data/staff/wumei10/hdfs.keytab
--rw-r--r--   3 wumei10 bigdata_analysis_group       1346 2017-04-12 14:59 /data/big_data/staff/wumei10/hive.keytab
--rw-r--r--   3 wumei10 bigdata_analysis_group        570 2017-04-12 14:59 /data/big_data/staff/wumei10/lidachao1.keytab
--rw-r--r--   3 wumei10 bigdata_analysis_group        538 2017-04-12 14:59 /data/big_data/staff/wumei10/ourui.keytab
-drwxr-xr-x   - wumei10 bigdata_analysis_group          0 2017-04-12 14:59 /data/big_data/staff/wumei10/root
--rw-r--r--   3 wumei10 bigdata_analysis_group        554 2017-04-12 14:59 /data/big_data/staff/wumei10/wumei10.keytab
+-rw-r--r--   3 wumei bigdata_analysis_group          0 2017-04-12 14:59 /data/big_data/staff/wumei/.autorelabel
+-rw-r--r--   3 wumei bigdata_analysis_group      81239 2017-04-12 14:59 /data/big_data/staff/wumei/.readahead
+-rw-r--r--   3 wumei bigdata_analysis_group       1794 2017-04-12 14:59 /data/big_data/staff/wumei/anaconda-ks.cfg
+drwxr-xr-x   - wumei bigdata_analysis_group          0 2017-04-12 14:59 /data/big_data/staff/wumei/app
+drwxr-xr-x   - wumei bigdata_analysis_group          0 2017-04-12 15:00 /data/big_data/staff/wumei/bin
+-rw-r--r--   3 wumei bigdata_analysis_group        586 2017-04-12 14:59 /data/big_data/staff/wumei/ganjianling.keytab
+-rw-r--r--   3 wumei bigdata_analysis_group       1066 2017-04-12 14:59 /data/big_data/staff/wumei/hdfs.keytab
+-rw-r--r--   3 wumei bigdata_analysis_group       1346 2017-04-12 14:59 /data/big_data/staff/wumei/hive.keytab
+-rw-r--r--   3 wumei bigdata_analysis_group        570 2017-04-12 14:59 /data/big_data/staff/wumei/lidachao1.keytab
+-rw-r--r--   3 wumei bigdata_analysis_group        538 2017-04-12 14:59 /data/big_data/staff/wumei/ourui.keytab
+drwxr-xr-x   - wumei bigdata_analysis_group          0 2017-04-12 14:59 /data/big_data/staff/wumei/root
+-rw-r--r--   3 wumei bigdata_analysis_group        554 2017-04-12 14:59 /data/big_data/staff/wumei/wumei.keytab
 Found 14 items
-drwxrwxrwt   - hdfs    supergroup                  0 2017-04-11 18:11 /tmp/wumei10_kms4test/.Trash
--rw-r--r--   3 wumei10 bigdata_analysis_group          0 2017-04-12 15:07 /tmp/wumei10_kms4test/.autorelabel
--rw-r--r--   3 wumei10 bigdata_analysis_group      81239 2017-04-12 15:07 /tmp/wumei10_kms4test/.readahead
--rw-r--r--   3 wumei10 bigdata_analysis_group       1794 2017-04-11 20:06 /tmp/wumei10_kms4test/anaconda-ks.cfg
-drwxr-xr-x   - wumei10 bigdata_analysis_group          0 2017-04-12 15:07 /tmp/wumei10_kms4test/app
-drwxr-xr-x   - wumei10 bigdata_analysis_group          0 2017-04-12 15:07 /tmp/wumei10_kms4test/bin
--rw-r--r--   3 wumei10 bigdata_analysis_group        586 2017-04-12 15:07 /tmp/wumei10_kms4test/ganjianling.keytab
--rw-r--r--   3 wumei10 bigdata_analysis_group       1066 2017-04-12 15:07 /tmp/wumei10_kms4test/hdfs.keytab
--rw-r--r--   3 wumei10 bigdata_analysis_group         12 2017-04-11 18:30 /tmp/wumei10_kms4test/helloWorld.txt
--rw-r--r--   3 wumei10 bigdata_analysis_group       1346 2017-04-12 15:07 /tmp/wumei10_kms4test/hive.keytab
--rw-r--r--   3 wumei10 bigdata_analysis_group        570 2017-04-12 15:07 /tmp/wumei10_kms4test/lidachao1.keytab
--rw-r--r--   3 wumei10 bigdata_analysis_group        538 2017-04-12 15:07 /tmp/wumei10_kms4test/ourui.keytab
-drwxr-xr-x   - wumei10 bigdata_analysis_group          0 2017-04-12 15:07 /tmp/wumei10_kms4test/root
--rw-r--r--   3 wumei10 bigdata_analysis_group        554 2017-04-12 15:07 /tmp/wumei10_kms4test/wumei10.keytab
+drwxrwxrwt   - hdfs    supergroup                  0 2017-04-11 18:11 /tmp/wumei_kms4test/.Trash
+-rw-r--r--   3 wumei bigdata_analysis_group          0 2017-04-12 15:07 /tmp/wumei_kms4test/.autorelabel
+-rw-r--r--   3 wumei bigdata_analysis_group      81239 2017-04-12 15:07 /tmp/wumei_kms4test/.readahead
+-rw-r--r--   3 wumei bigdata_analysis_group       1794 2017-04-11 20:06 /tmp/wumei_kms4test/anaconda-ks.cfg
+drwxr-xr-x   - wumei bigdata_analysis_group          0 2017-04-12 15:07 /tmp/wumei_kms4test/app
+drwxr-xr-x   - wumei bigdata_analysis_group          0 2017-04-12 15:07 /tmp/wumei_kms4test/bin
+-rw-r--r--   3 wumei bigdata_analysis_group        586 2017-04-12 15:07 /tmp/wumei_kms4test/ganjianling.keytab
+-rw-r--r--   3 wumei bigdata_analysis_group       1066 2017-04-12 15:07 /tmp/wumei_kms4test/hdfs.keytab
+-rw-r--r--   3 wumei bigdata_analysis_group         12 2017-04-11 18:30 /tmp/wumei_kms4test/helloWorld.txt
+-rw-r--r--   3 wumei bigdata_analysis_group       1346 2017-04-12 15:07 /tmp/wumei_kms4test/hive.keytab
+-rw-r--r--   3 wumei bigdata_analysis_group        570 2017-04-12 15:07 /tmp/wumei_kms4test/lidachao1.keytab
+-rw-r--r--   3 wumei bigdata_analysis_group        538 2017-04-12 15:07 /tmp/wumei_kms4test/ourui.keytab
+drwxr-xr-x   - wumei bigdata_analysis_group          0 2017-04-12 15:07 /tmp/wumei_kms4test/root
+-rw-r--r--   3 wumei bigdata_analysis_group        554 2017-04-12 15:07 /tmp/wumei_kms4test/wumei.keytab
 ```
 
 
 # 8 spark 读取encryption zone数据权限验证
 
 ```
-scala> sc.textFile("/tmp/wumei10_kms4test/anaconda-ks.cfg").collect()
+scala> sc.textFile("/tmp/wumei_kms4test/anaconda-ks.cfg").collect()
 17/04/12 18:49:24 WARN token.Token: Cannot find class for token kind kms-dt
 [Stage 0:>                                                          (0 + 2) / 2]17/04/12 18:49:33 WARN scheduler.TaskSetManager: Lost task 0.0 in stage 0.0 (TID 0, **rd12.lfbigdata**.cn): java.io.IOException: org.apache.hadoop.security.authentication.client.AuthenticationException: GSSException: No valid credentials provided (Mechanism level: Failed to find any Kerberos tgt)
         at org.apache.hadoop.crypto.key.kms.KMSClientProvider.createConnection(KMSClientProvider.java:491)
@@ -439,7 +439,7 @@ Driver stacktrace:
         at org.apache.spark.deploy.SparkSubmit$.submit(SparkSubmit.scala:206)
         at org.apache.spark.deploy.SparkSubmit$.main(SparkSubmit.scala:121)
         at org.apache.spark.deploy.SparkSubmit.main(SparkSubmit.scala)
-Caused by: org.apache.hadoop.security.authorize.AuthorizationException: User:hdfs not allowed to do 'DECRYPT_EEK' on 'wumei10_key2'
+Caused by: org.apache.hadoop.security.authorize.AuthorizationException: User:hdfs not allowed to do 'DECRYPT_EEK' on 'wumei_key2'
         at sun.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)
         at sun.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:62)
         at sun.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:45)
@@ -479,7 +479,7 @@ Caused by: org.apache.hadoop.security.authorize.AuthorizationException: User:hdf
 
 
 scala>
-[root@**rcw1 ~]# kinit -kt wumei10.keytab wumei10
+[root@**rcw1 ~]# kinit -kt wumei.keytab wumei
 [root@**rcw1 ~]# spark-shell --master yarn       
 Setting default log level to "WARN".
 To adjust logging level use sc.setLogLevel(newLevel).
@@ -496,7 +496,7 @@ Type :help for more information.
 Spark context available as sc (master = yarn-client, app id = application_1491908827433_0010).
 SQL context available as sqlContext.
 
-scala> sc.textFile("/tmp/wumei10_kms4test/anaconda-ks.cfg").collect()
+scala> sc.textFile("/tmp/wumei_kms4test/anaconda-ks.cfg").collect()
 17/04/12 18:50:23 WARN token.Token: Cannot find class for token kind kms-dt
 res0: Array[String] = Array(#version=DEVEL, # System authorization information, auth --enableshadow --passalgo=sha512, # Use CDROM installation media, cdrom, # Use graphical install, graphical, # Run the Setup Agent on first boot, firstboot --enable, ignoredisk --only-use=sda, # Keyboard layouts, keyboard --vckeymap=us --xlayouts='us', # System language, lang en_US.UTF-8 --addsupport=zh_CN.UTF-8, "", # Network information, network  --bootproto=dhcp --device=eno1 --onboot=off --ipv6=auto, network  --bootproto=dhcp --device=eno2 --onboot=off --ipv6=auto, network  --bootproto=dhcp --device=eno3 --onboot=off --ipv6=auto, network  --bootproto=dhcp --device=eno4 --onboot=off --ipv6=auto, network  --hostname=localhost.localdomain, "", # Root password, rootpw --iscrypted $6$H.qsCwrYBD.ATgZH$lP3...
 scala> 
@@ -510,14 +510,14 @@ scala>
 
 ```
 !connect jdbc:hive2://**.192.20:10000/default;principal=hive/**rcn1.lfbigdata**.cn@LFDC.**-GROUP.NET
-CREATE DATABASE  encryption_test_db  location   '/tmp/wumei10_kms4test/encryption_test_db';
+CREATE DATABASE  encryption_test_db  location   '/tmp/wumei_kms4test/encryption_test_db';
 describe database  encryption_test_db;
 CREATE ROLE   encryption_all_role; 
 GRANT ALL ON DATABASE encryption_test_db TO ROLE  encryption_all_role;
 GRANT ROLE  encryption_all_role   TO GROUP bigdata_analysis_group;
 SHOW GRANT ROLE  encryption_all_role ;
-GRANT ALL ON URI   '/tmp/wumei10_kms4test/encryption_test_db'   TO ROLE encryption_all_role;
-beeline -u jdbc:hive2://**.192.22:10000  -n wumei10   -p  123456  -d org.apache.hive.jdbc.HiveDriver -e "show databases"
+GRANT ALL ON URI   '/tmp/wumei_kms4test/encryption_test_db'   TO ROLE encryption_all_role;
+beeline -u jdbc:hive2://**.192.22:10000  -n wumei   -p  123456  -d org.apache.hive.jdbc.HiveDriver -e "show databases"
 drop table pokes;
 CREATE TABLE pokes1 (foo INT, bar STRING) row format delimited fields terminated by ','; 
  
@@ -526,8 +526,8 @@ CREATE TABLE pokes1 (foo INT, bar STRING) row format delimited fields terminated
 
 
 ```
-[root@**rcw1 ~]# kinit -kt wumei10.keytab wumei10
-[root@**rcw1 ~]# beeline -u jdbc:hive2://**.192.22:10000  -n wumei10   -p  123456  -d org.apache.hive.jdbc.HiveDriver
+[root@**rcw1 ~]# kinit -kt wumei.keytab wumei
+[root@**rcw1 ~]# beeline -u jdbc:hive2://**.192.22:10000  -n wumei   -p  123456  -d org.apache.hive.jdbc.HiveDriver
 Java HotSpot(TM) 64-Bit Server VM warning: ignoring option MaxPermSize=512M; support was removed in 8.0
 Java HotSpot(TM) 64-Bit Server VM warning: Using incremental CMS is deprecated and will likely be removed in a future release
 17/04/12 19:26:40 WARN mapreduce.TableMapReduceUtil: The hbase-prefix-tree module jar containing PrefixTreeCodec is not present.  Continuing without it.
@@ -555,7 +555,7 @@ INFO  : Completed compiling command(queryId=hive_20170412192626_5a433375-00b2-4b
 INFO  : Executing command(queryId=hive_20170412192626_5a433375-00b2-4b67-8846-c7b97ffbd4a5): select * from pokes1
 INFO  : Completed executing command(queryId=hive_20170412192626_5a433375-00b2-4b67-8846-c7b97ffbd4a5); Time taken: 0.009 seconds
 INFO  : OK
-Error: java.io.IOException: org.apache.hadoop.security.authorize.AuthorizationException: User [hive] is not authorized to perform [DECRYPT_EEK] on key with ACL name [wumei10_key2]!! (state=,code=0)
+Error: java.io.IOException: org.apache.hadoop.security.authorize.AuthorizationException: User [hive] is not authorized to perform [DECRYPT_EEK] on key with ACL name [wumei_key2]!! (state=,code=0)
 0: jdbc:hive2://**.192.22:10000> 
 
 
@@ -579,7 +579,7 @@ OK
 Time taken: 0.831 seconds, Fetched: 3 row(s)
 hive> ^C[root@**rcw1 ~]# klist
 Ticket cache: FILE:/tmp/krb5cc_0
-Default principal: wumei10@LFDC.**-GROUP.NET
+Default principal: wumei@LFDC.**-GROUP.NET
 
 Valid starting       Expires              Service principal
 04/12/2017 19:26:25  04/13/2017 19:26:25  krbtgt/LFDC.**-GROUP.NET@LFDC.**-GROUP.NET

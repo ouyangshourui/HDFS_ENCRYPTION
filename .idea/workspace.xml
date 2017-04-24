@@ -3,6 +3,7 @@
   <component name="ChangeListManager">
     <list default="true" id="682e04fe-fd4e-4ccd-8633-b583fb5515dd" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/HDFS encryption  operation @CDH5.7.1.md" afterPath="$PROJECT_DIR$/HDFS encryption  operation @CDH5.7.1.md" />
     </list>
     <ignored path="HDFS_ENCRYPTION.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -28,8 +29,8 @@
         <entry file="file://$PROJECT_DIR$/HDFS encryption  operation @CDH5.7.1.md">
           <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
             <state split_layout="SPLIT">
-              <first_editor vertical-scroll-proportion="15.836538">
-                <caret line="584" column="80" selection-start-line="584" selection-start-column="80" selection-end-line="584" selection-end-column="80" />
+              <first_editor vertical-scroll-proportion="12.264423">
+                <caret line="516" column="50" selection-start-line="516" selection-start-column="50" selection-end-line="516" selection-end-column="50" />
                 <folding />
               </first_editor>
               <second_editor />
@@ -862,12 +863,12 @@
       <created>1493011937020</created>
       <option name="number" value="Default" />
       <updated>1493011937020</updated>
-      <workItem from="1493011938300" duration="450000" />
+      <workItem from="1493011938300" duration="547000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="450000" />
+    <option name="totallyTimeSpent" value="547000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-1818" y="40" width="1619" height="941" extended-state="0" />
@@ -936,8 +937,8 @@
       </provider>
       <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
         <state split_layout="SPLIT">
-          <first_editor vertical-scroll-proportion="15.836538">
-            <caret line="584" column="80" selection-start-line="584" selection-start-column="80" selection-end-line="584" selection-end-column="80" />
+          <first_editor vertical-scroll-proportion="12.264423">
+            <caret line="516" column="50" selection-start-line="516" selection-start-column="50" selection-end-line="516" selection-end-column="50" />
             <folding />
           </first_editor>
           <second_editor />
